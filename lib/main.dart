@@ -1,129 +1,208 @@
-import 'package:flutter/material.dart';
+import 'dart:io';
 
-void main() {
-  runApp(const MyApp());
+import 'package:flutter/cupertino.dart';
+import 'package:teledart/model.dart';
+import 'package:teledart/teledart.dart';
+import 'package:teledart/telegram.dart';
+
+var teledart;
+
+void main() async {
+  var BOT_TOKEN = '7308736935:AAGfgfwhnWk6v2JMaRN37OuhTOaUqNJI42U';
+  final username = (await Telegram(BOT_TOKEN).getMe()).username;
+  teledart = TeleDart(BOT_TOKEN, Event(username!));
+
+  messageSend();
+  startListen();
+  help();
+  about();
+  report();
+  contact();
+  info();
+  settings();
+  feedback();
+  cancel();
+  setupCommands();
+
+  //teledartga start berildi
+  teledart.start();
+  //app run qilindi
+  runApp(MyApp());
 }
 
-class MyApp extends StatelessWidget {
+void settings() {
+  teledart.onCommand('settings').listen((message) {
+    message.reply(
+        'Bu yerda botning sozlamalarini ko\'rishingiz va o\'zgartirishingiz mumkin.');
+  });
+}
+
+void report(){
+  teledart.onCommand('report').listen((message) {
+    message.reply('Xatolik haqida qisqacha yozib bering.');
+  });
+
+}
+
+void info(){
+  teledart.onCommand('info').listen((message) {
+    message.reply('Sizning Telegram ID: ${message.from.id}');
+  });
+
+}
+
+
+void feedback(){teledart.onCommand('feedback').listen((message) {
+  message.reply('Fikr-mulohazalaringizni yozing va bizga yuboring!');
+});
+}
+void cancel(){
+  teledart.onCommand('cancel').listen((message) {
+    message.reply('Operatsiya bekor qilindi.');
+  });
+
+}
+void contact(){
+  teledart.onCommand('contact').listen((message) {
+    message.reply('Biz bilan bog\'lanish uchun anvarxonmurotxonov777@gmail.com manziliga yozing.');
+  });
+
+}
+
+void about(){teledart.onCommand('about').listen((message) {
+  message.reply('Bu bot [tashkilot] tomonidan ishlab chiqilgan va quyidagi maqsadlar uchun mo\'ljallangan...');
+});
+
+
+}
+
+void messageSend() {
+  teledart
+      .onMessage(keyword: 'Salom') //keywordni o'chirib qoyish ham mumkin
+      .listen((message) => message.reply('Hi user!'));
+}
+
+void setupCommands() {
+  // Barcha komandalarni belgilash
+  final commands = [
+    'Start',
+    'Help',
+    'Menu',
+    'Settings',
+    'About',
+    'Contact',
+    'Cancel',
+    'Info',
+    'Feedback',
+    'Report',
+    "Game"
+  ];
+
+  // Klaviaturani yaratish
+  var keyboard = ReplyKeyboardMarkup(
+    keyboard: commands.map((command) => [KeyboardButton(text: command)]).toList(),
+    resizeKeyboard: true,
+    oneTimeKeyboard: true,
+  );
+
+  // /menu buyrug'ini tinglash
+  teledart.onCommand('menu').listen((message) {
+    teledart.sendMessage(
+      message.chat.id,
+      'Komandani tanlang:',
+      replyMarkup: keyboard,
+    );
+  });
+
+  // Klaviaturadan xabarlarni tinglash va tegishli javobni qaytarish
+  teledart.onMessage().listen((message) {
+    switch (message.text) {
+      case 'Start':
+        message.reply('Botga xush kelibsiz!');
+        break;
+      case 'Help':
+        message.reply('Bu bot sizga quyidagi imkoniyatlarni beradi...');
+        break;
+      case 'Menu':
+        teledart.sendMessage(
+          message.chat.id,
+          'Komandani tanlang:',
+          replyMarkup: keyboard,
+        );
+        break;
+      case 'Settings':
+        message.reply('Bu yerda botning sozlamalarini ko\'rishingiz va o\'zgartirishingiz mumkin.');
+        break;
+      case 'About':
+        message.reply('Bu bot [tashkilot] tomonidan ishlab chiqilgan va quyidagi maqsadlar uchun mo\'ljallangan...');
+        break;
+      case 'Contact':
+        message.reply('Biz bilan bog\'lanish uchun anvarxonmurotxonov777@gmail.com manziliga yozing.');
+        break;
+      case 'Cancel':
+        message.reply('Operatsiya bekor qilindi.');
+        break;
+      case 'Info':
+        message.reply('Sizning Telegram ID: ${message.from.id}');
+        break;
+      case 'Feedback':
+        message.reply('Fikr-mulohazalaringizni yozing va bizga yuboring!');
+        break;
+      case 'Report':
+        message.reply('Xatolik haqida qisqacha yozib bering.');
+        break;
+        //
+      case 'Game':
+      // O'yin taklif qilish
+        teledart.sendGame(
+          message.chat.id,
+          'kingdomsof2048', // Bu erda sizning o'yiningizning 'short_name' kiriting
+          replyMarkup: InlineKeyboardMarkup(
+            inlineKeyboard: [
+              [
+                InlineKeyboardButton(
+                  text: 'O\'yinni boshlash',
+                  callbackData: 'play_game',
+                  url: 'https://prizes.gamee.com/game-bot/kingdomsof2048-e9d11213bdc9a5c1fb2b7b9c803561f17100a8a0#tgShareScoreUrl=tg%3A%2F%2Fshare_game_score%3Fhash%3DZObwMMfeHvbEuLdW_mjfpQJOkKqWX3nDoB05CmyKdh-sfJZr6cxyXpZC45-QcvOS',
+                ),
+              ],
+            ],
+          ),
+        );
+        break;
+
+      default:
+      // Agar boshqa xabar kelsa, javob qaytarmaslik
+        break;
+    }
+  });
+}
+
+
+void help() {
+  teledart.onCommand('help').listen((message) {
+    message.reply('Bu bot sizga quyidagi imkoniyatlarni beradi...');
+  });
+}
+
+
+
+void startListen() {
+  teledart
+      .onCommand('start')
+      .listen((message) => message.reply('Assalomu aleykum hurmatli mijoz!'));
+}
+
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // TRY THIS: Try running your application with "flutter run". You'll see
-        // the application has a purple toolbar. Then, without quitting the app,
-        // try changing the seedColor in the colorScheme below to Colors.green
-        // and then invoke "hot reload" (save your changes or press the "hot
-        // reload" button in a Flutter-supported IDE, or press "r" if you used
-        // the command line to start the app).
-        //
-        // Notice that the counter didn't reset back to zero; the application
-        // state is not lost during the reload. To reset the state, use hot
-        // restart instead.
-        //
-        // This works for code too, not just values: Most code changes can be
-        // tested with just a hot reload.
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: true,
-      ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
-    );
-  }
+  State<MyApp> createState() => _MyAppState();
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
-
-  @override
-  State<MyHomePage> createState() => _MyHomePageState();
-}
-
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
-  }
-
+class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
-
-
-
-    
-    return Scaffold(
-      appBar: AppBar(
-        // TRY THIS: Try changing the color here to a specific color (to
-        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-        // change color while the other colors stay the same.
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
-      ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          //
-          // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
-          // action in the IDE, or press "p" in the console), to see the
-          // wireframe for each widget.
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text(
-              'You have pushed the button this many times:',
-            ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
-          ],
-        ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
-    );
+    return const Placeholder();
   }
 }
